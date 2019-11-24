@@ -6,6 +6,8 @@ project('pa4_graph', 'cpp',
 
 
 # === src dependencies ===
+cxxopts_proj = subproject('cxxopts')
+cxxopts_dep = cxxopts_proj.get_variable('cxxopts_dep')
 # === end src dependencies ===
 subdir('src')
 

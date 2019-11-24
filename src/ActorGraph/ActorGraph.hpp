@@ -1,4 +1,4 @@
-/*
+/**
  * ActorGraph.hpp
  * Author: Yuening YANG, Shenlang ZHOU
  * Date:   11/18/2019
@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 // Maybe include some data structures here
 
@@ -27,23 +28,38 @@ class ActorGraph {
     /** An inner class, instances of which are edges in an ActorGraph */
     class MovieEdge {
       public:
-        string title;           // movie name
-        int weight;             // weight = age of the movie = 1 + (2019 - Y)
-        vector<string> actors;  // list of actors who have played in this movie
+        string title;  // movie name
+        int year;      // movie year
+        int weight;    // weight = age of the movie = 1 + (2019 - Y)
+        unordered_set<string>
+            actors;  // list of actors who have played in this movie
 
         /* Constructo that initialize a MovieEdge */
-        MovieEdge(string name, int year);
+        MovieEdge(string name, int year, bool use_weighted_edges);
     };
 
     /** An inner class, instances of which are vertices in an ActorGraph */
     class ActorNode {
       public:
-        string name;                // name of the actor
-        vector<MovieEdge*> movies;  // list of movies the actor has played
-        int priority;               // priority used in link prediction
+        string name;  // name of the actor
+        unordered_set<MovieEdge*>
+            movies;  // list of movies the actor has played
+
+        unsigned int dist;
+        ActorNode* prevNode;  // prev actor node
+        MovieEdge* prevEdge;  // prev movie edge
+
+        unsigned int priority;  // priority used in link prediction
 
         /* Constructo that initialize an ActorNode */
         ActorNode(string name);
+
+        /* find if there's at least one edge between the given actor and current
+         * actor */
+        bool hasEdge(string actorName);
+
+        /* get num of the edges between the given actor and current actor */
+        int getEdgeNum(string actorName);
 
         /* set the priority according to the target ActorNode */
         void setPriority(ActorNode* target);
@@ -67,7 +83,13 @@ class ActorGraph {
      */
     ActorGraph(void);
 
-    // Maybe add some more methods here
+    /* find the shortest path of the unweighted graph */
+    void find_unweighted_path(string startActorName, string endActorName,
+                              ostream& outFile);
+
+    /* find the shortest path of the weighted graph */
+    void find_weighted_path(string startActorName, string endActorName,
+                            ostream& outFile);
 
     /** You can modify this method definition as you wish
      *
@@ -80,6 +102,16 @@ class ActorGraph {
      * return true if file was loaded sucessfully, false otherwise
      */
     bool loadFromFile(const char* in_filename, bool use_weighted_edges);
+
+    /* return the copy of unordered_map actors for debugging */
+    unordered_map<string, ActorNode*> getActors() { return actors; }
+    /* return the copy of unordered_map movies for debugging */
+    unordered_map<string, MovieEdge*> getMovies() { return movies; }
+
+    /**
+     * Destuctor of the Actor graph
+     */
+    ~ActorGraph();
 };
 
 #endif  // ACTORGRAPH_HPP

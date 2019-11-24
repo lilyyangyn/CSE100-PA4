@@ -1,0 +1,6 @@
+(actor)--[movie#@year]-->(actor)--...
+(Robert Downey Jr.)--[The Avengers#@1998]-->(Chris Evans)
+(Amy Adams)--[Her#@2013]-->(Joaquin Phoenix)--[To Die For#@1995]-->(Nicole Kidman)
+(Will Smith)--[Gemini Man#@2019]-->(Mary Elizabeth Winstead)--[A Good Day to Die Hard#@2013]-->(Bruce Willis)
+(James McAvoy)--[X-Men: First Class#@2011]-->(Michael Fassbender)
+(Djimon Hounsou)--[The Island#@2005]-->(Suet Lam)--[Vengeance#@2006]-->(50 Cent)
