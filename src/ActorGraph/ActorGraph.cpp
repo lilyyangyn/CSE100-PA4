@@ -19,6 +19,7 @@
 using namespace std;
 
 const int WEIGHT_HELPER = 2020;
+const int LINK_PREDICTOR_SIZE = 4;
 
 /**
  * Constructor of the Actor graph
@@ -107,6 +108,115 @@ void ActorGraph::find_unweighted_path(string startActorName,
 void ActorGraph::find_weighted_path(string startActorName, string endActorName,
                                     ostream& outFile) {}
 
+/* predict possible future collaberation of other actors and the given actor
+ */
+void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
+                             ostream& outFile2) {
+    // if actor does not exist in the graph, output an empty line
+    if (actors.count(targetActorName) == 0) {
+        outFile1 << endl;
+        outFile2 << endl;
+        return;
+    }
+
+    ActorNode* targetActor = actors.at(targetActorName);
+
+    // reset the graph
+    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+        itr->second->priority = 0;
+    }
+
+    // get direct neighbor
+    unordered_set<ActorNode*> collaberated;
+    unordered_set<ActorNode*> not_collaberated;
+    for (auto movie : targetActor->movies) {
+        for (string actorName : movie->actors) {
+            // get actors who have collaberated with our target actor
+            collaberated.insert(actors.at(actorName));
+        }
+    }
+
+    // get the priority of actors and the not directly connected actors
+    for (auto movie1 : targetActor->movies) {
+        for (string firstActorName : movie1->actors) {
+            if (firstActorName == targetActorName) {
+                // cannot edge to itself
+                continue;
+            }
+            // get actors who have collaberated with our target actor
+            ActorNode* firstActor = actors.at(firstActorName);
+            for (auto movie2 : firstActor->movies) {
+                for (string secondActorName : movie2->actors) {
+                    if (secondActorName == targetActorName ||
+                        secondActorName == firstActorName) {
+                        // cannot edge to itself
+                        continue;
+                    }
+                    // get actors who have collaberated with the first-level
+                    // actor
+                    ActorNode* secondActor = actors.at(secondActorName);
+                    // increase priority (as there is a new path
+                    // found)
+                    secondActor->priority++;
+                    if (collaberated.count(secondActor) == 0 &&
+                        not_collaberated.count(secondActor) == 0) {
+                        not_collaberated.insert(secondActor);
+                    }
+                }
+            }
+        }
+    }
+
+    // get the 4 of highest priority of actors who have collaberated with target
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+        collaberated_pq;
+    for (auto itr = collaberated.begin(); itr != collaberated.end(); itr++) {
+        if ((*itr)->name == targetActorName) {
+            continue;
+        }
+        if (collaberated_pq.size() < LINK_PREDICTOR_SIZE) {
+            collaberated_pq.push(*itr);
+        } else {
+            if (((*itr)->priority > collaberated_pq.top()->priority) ||
+                ((*itr)->priority == collaberated_pq.top()->priority &&
+                 (*itr)->name < collaberated_pq.top()->name)) {
+                collaberated_pq.pop();
+                collaberated_pq.push(*itr);
+            }
+        }
+    }
+    string output1 = "";
+    while (collaberated_pq.size() > 0) {
+        output1 = collaberated_pq.top()->name + "\t" + output1;
+        collaberated_pq.pop();
+    }
+    outFile1 << output1 << endl;
+
+    // get the 4 of highest priority of actors who have not collaberated with
+    // target
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+        not_collaberated_pq;
+    for (auto itr = not_collaberated.begin(); itr != not_collaberated.end();
+         itr++) {
+        if (not_collaberated_pq.size() < LINK_PREDICTOR_SIZE) {
+            not_collaberated_pq.push(*itr);
+        } else {
+            if (((*itr)->priority > not_collaberated_pq.top()->priority) ||
+                ((*itr)->priority == not_collaberated_pq.top()->priority &&
+                 (*itr)->name < not_collaberated_pq.top()->name)) {
+                not_collaberated_pq.pop();
+                not_collaberated_pq.push(*itr);
+            }
+        }
+    }
+    string output2 = "";
+    while (not_collaberated_pq.size() > 0) {
+        output2 = not_collaberated_pq.top()->name + "\t" + output2;
+        not_collaberated_pq.pop();
+    }
+    outFile2 << output2 << endl;
+}
+
 /** You can modify this method definition as you wish
  *
  * Load the graph from a tab-delimited file of actor->movie relationships.
@@ -143,8 +253,8 @@ bool ActorGraph::loadFromFile(const char* in_filename,
         while (ss) {
             string str;
 
-            // get the next string before hitting a tab character and put it in
-            // 'str'
+            // get the next string before hitting a tab character and put it
+            // in 'str'
             if (!getline(ss, str, '\t')) break;
             record.push_back(str);
         }
@@ -169,7 +279,8 @@ bool ActorGraph::loadFromFile(const char* in_filename,
                                                       use_weighted_edges));
         }
 
-        // update the list. there's impossible for repitition of (actor, movie)
+        // update the list. there's impossible for repitition of (actor,
+        // movie)
         movies[movie_title]->actors.insert(actor);
         actors[actor]->movies.insert(movies[movie_title]);
     }
@@ -192,17 +303,6 @@ ActorGraph::MovieEdge::MovieEdge(string name, int year, bool use_weighted_edges)
     }
 }
 
-/* find if there's at least one edge between the given actor and current actor
- */
-bool ActorGraph::ActorNode::hasEdge(string actorName) {
-    for (MovieEdge* me : movies) {
-        if (me->actors.count(actorName)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 /* get weight of the edge between the given actor and current actor */
 int ActorGraph::ActorNode::getEdgeNum(string actorName) {
     int weight = 0;
@@ -216,9 +316,6 @@ int ActorGraph::ActorNode::getEdgeNum(string actorName) {
 
 /* Constructo that initialize an ActorNode */
 ActorGraph::ActorNode::ActorNode(string name) : name(name), priority(0) {}
-
-/* set the priority according to the target ActorNode */
-void ActorGraph::ActorNode::setPriority(ActorNode* target) {}
 
 bool ActorGraph::ActorNode::ActorNodeComp::operator()(ActorNode* left,
                                                       ActorNode* right) const {

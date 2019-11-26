@@ -24,7 +24,7 @@ using namespace std;
  * which shows the corperate relation between actors
  */
 class ActorGraph {
-  protected:
+  public:
     /** An inner class, instances of which are edges in an ActorGraph */
     class MovieEdge {
       public:
@@ -54,26 +54,20 @@ class ActorGraph {
         /* Constructo that initialize an ActorNode */
         ActorNode(string name);
 
-        /* find if there's at least one edge between the given actor and current
-         * actor */
-        bool hasEdge(string actorName);
-
         /* get num of the edges between the given actor and current actor */
         int getEdgeNum(string actorName);
-
-        /* set the priority according to the target ActorNode */
-        void setPriority(ActorNode* target);
 
         /* Comparator of ActorNode pointer. */
         struct ActorNodeComp {
             /* a comparator of ActorNode pointer.
-             * The node with higher priority will come first
-             * If 2 nodes are of the same priority, the node with name in
-             * lower alphebetic order will come first */
+             * The node with lower priority value will have higher priority
+             * If 2 nodes are of the same priority value the node with name in
+             * higher alphebetic order will have higher priority */
             bool operator()(ActorNode* left, ActorNode* right) const;
         };
     };
 
+  protected:
     unordered_map<string, ActorNode*> actors;
     unordered_map<string, MovieEdge*> movies;
 
@@ -90,6 +84,11 @@ class ActorGraph {
     /* find the shortest path of the weighted graph */
     void find_weighted_path(string startActorName, string endActorName,
                             ostream& outFile);
+
+    /* predict possible future collaberation of other actors and the given actor
+     */
+    void predictlink(string targetActorName, ostream& outFile1,
+                     ostream& outFile2);
 
     /** You can modify this method definition as you wish
      *

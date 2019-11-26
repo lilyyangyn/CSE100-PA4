@@ -9,9 +9,12 @@
 
 #include "ActorGraph.hpp"
 #include "cxxopts.hpp"
+
 using namespace std;
 
+/* find the shortest path of a weighted graph */
 void find_weighted(ActorGraph* graph, string inFileName, string outFileName);
+/* find the shortest path of an unweighted graph */
 void find_unweighted(ActorGraph* graph, string inFileName, string outFileName);
 
 /* Main program that runs the findpath */
@@ -64,7 +67,6 @@ int main(int argc, char* argv[]) {
         } else {
             find_unweighted(graph, inFileName, outFileName);
         }
-        return 0;
     }
 }
 

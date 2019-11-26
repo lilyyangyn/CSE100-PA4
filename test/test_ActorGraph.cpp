@@ -62,4 +62,42 @@ TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
     EXPECT_EQ(os.str(), "\n");
 }
 
-TEST(ActorGraphTest, SIMPLE_TEST) {}
+/* check the shortest path in weighted mode */
+TEST_F(SmallUnweightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
+    // to be implemented
+    ostringstream os;
+    graph.find_weighted_path("Kevin Bacon", "James McAvoy", os);
+}
+
+/* check whether predictlink works well */
+TEST_F(SmallUnweightedGraphFixture, PREDICT_LINK_TEST) {
+    ostringstream os1;
+    ostringstream os2;
+
+    // normal prediction 1 (diff priority)
+    graph.predictlink("James McAvoy", os1, os2);
+    EXPECT_EQ(os1.str(),
+              "Kevin Bacon\tMichael Fassbender\tSamuel L. Jackson\t\n");
+    EXPECT_EQ(os2.str(), "Katherine Waterston\tRobert Downey Jr.\t\n");
+
+    os1.str("");
+    os2.str("");
+    // normal prediction 2 (same priority)
+    graph.predictlink("Robert Downey Jr.", os1, os2);
+    EXPECT_EQ(os1.str(), "Samuel L. Jackson\tTom Holland\t\n");
+    EXPECT_EQ(os2.str(), "James McAvoy\tKatherine Waterston\t\n");
+
+    os1.str("");
+    os2.str("");
+    // test when target actor does not show up in graph
+    graph.predictlink("Nobody", os1, os2);
+    EXPECT_EQ(os1.str(), "\n");
+    EXPECT_EQ(os2.str(), "\n");
+}
+
+/* find number of edges between two actor nodes */
+TEST_F(SmallUnweightedGraphFixture, GET_EDGE_NUM_TEST) {
+    ActorGraph::ActorNode* actor = graph.getActors().at("James McAvoy");
+    EXPECT_EQ(actor->getEdgeNum("Michael Fassbender"), 2);
+    EXPECT_EQ(actor->getEdgeNum("Tom Holland"), 0);
+}
