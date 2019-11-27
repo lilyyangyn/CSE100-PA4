@@ -21,8 +21,22 @@ class SmallUnweightedGraphFixture : public ::testing::Test {
 
   public:
     SmallUnweightedGraphFixture() {
-        string infoFileName = "/Code/cse100_pa4/data/imdb_small_sample.tsv";
-        graph.loadFromFile(infoFileName.c_str(), false);
+        graph.insert("Kevin Bacon", "X-Men: First Class", 2011, false);
+        graph.insert("James McAvoy", "X-Men: First Class", 2011, false);
+        graph.insert("James McAvoy", "X-Men: Apocalypse", 2016, false);
+        graph.insert("James McAvoy", "Glass", 2019, false);
+        graph.insert("Michael Fassbender", "X-Men: First Class", 2011, false);
+        graph.insert("Michael Fassbender", "X-Men: Apocalypse", 2016, false);
+        graph.insert("Michael Fassbender", "Alien: Covenant", 2017, false);
+        graph.insert("Samuel L. Jackson", "Glass", 2019, false);
+        graph.insert("Samuel L. Jackson", "Avengers: Endgame", 2019, false);
+        graph.insert("Robert Downey Jr.", "Avengers: Endgame", 2019, false);
+        graph.insert("Robert Downey Jr.", "Spider-Man: Homecoming", 2017,
+                     false);
+        graph.insert("Tom Holland", "Spider-Man: Homecoming", 2017, false);
+        graph.insert("Tom Holland", "The Current War", 2017, false);
+        graph.insert("Katherine Waterston", "Alien: Covenant", 2017, false);
+        graph.insert("Katherine Waterston", "The Current War", 2017, false);
     }
 };
 

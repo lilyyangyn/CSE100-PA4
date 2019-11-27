@@ -86,6 +86,9 @@ class ActorGraph {
     void predictlink(string targetActorName, ostream& outFile1,
                      ostream& outFile2);
 
+    /* helper method to insert (actor, movie) pair into the tree */
+    void insert(string actor, string movie_title, int year, bool use_weighted_edges);
+
     /** You can modify this method definition as you wish
      *
      * Load the graph from a tab-delimited file of actor->movie relationships.
