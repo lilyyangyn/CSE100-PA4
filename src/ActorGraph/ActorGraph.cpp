@@ -9,6 +9,7 @@
  */
 
 #include "ActorGraph.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <queue>
@@ -242,7 +243,15 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
 }
 
 /* find the minimal spanning tree of the connected graph */
-void ActorGraph::findMST(ostream& outFile) {}
+void ActorGraph::findMST(ostream& outFile) {
+    vector<MovieEdge*> edges;
+    // push all movie edges into vector. each movie edge appears only ONCE
+    for (auto itr = movies.begin(); itr != movies.end(); itr++) {
+        edges.push_back(itr->second);
+    }
+    // sort edges according to their weight in ascending order
+    sort(edges.begin(), edges.end(), MovieEdge::WeightComp());
+}
 
 /** You can modify this method definition as you wish
  *
