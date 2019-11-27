@@ -15,8 +15,8 @@ using namespace std;
 /* find the 4 actors with the highest priority who have collaberated and not
  * collaberated with the the given actor, and output to outFile1 and outFile2
  * respectively */
-void predictFutureCollaboration(ActorGraph* graph, string inFileName,
-                                string outFileName1, string outFileName2);
+void predictFutureCollaboration(ActorGraph* graph, istream& inFile,
+                                ostream& outFile1, ostream& outFile2);
 
 /* Main program that runs the linkpredictor */
 int main(int argc, char* argv[]) {
@@ -51,24 +51,33 @@ int main(int argc, char* argv[]) {
     ActorGraph* graph = new ActorGraph;
     // no need for weighted graph here
     if (graph->loadFromFile(infoFileName.c_str(), false)) {
-        predictFutureCollaboration(graph, inFileName, outFileName1,
-                                   outFileName2);
+        // prepare the query and output files
+        ifstream inFile;
+        inFile.open(inFileName);
+        ofstream outFile1;
+        outFile1.open(outFileName1);
+        ofstream outFile2;
+        outFile2.open(outFileName2);
+
+        predictFutureCollaboration(graph, inFile, outFile1, outFile2);
+
+        // close file
+        inFile.close();
+        outFile1.close();
+        outFile2.close();
+
+        // delete graph to release memory
+        delete graph;
     }
 }
 
 /* find the 4 actors with the highest priority who have collaberated and not
  * collaberated with the the given actor, and output to outFile1 and outFile2
  * respectively */
-void predictFutureCollaboration(ActorGraph* graph, string inFileName,
-                                string outFileName1, string outFileName2) {
-    // prepare the query and output files
-    ifstream inFile;
-    inFile.open(inFileName);
-    ofstream outFile1;
-    outFile1.open(outFileName1);
+void predictFutureCollaboration(ActorGraph* graph, istream& inFile,
+                                ostream& outFile1, ostream& outFile2) {
+    // write header
     outFile1 << "Actor1,Actor2,Actor3,Actor4" << endl;
-    ofstream outFile2;
-    outFile2.open(outFileName2);
     outFile2 << "Actor1,Actor2,Actor3,Actor4" << endl;
 
     bool have_header = false;
@@ -90,12 +99,4 @@ void predictFutureCollaboration(ActorGraph* graph, string inFileName,
     if (!inFile.eof()) {
         cerr << "Failed to read the query file!\n";
     }
-
-    // close file
-    inFile.close();
-    outFile1.close();
-    outFile2.close();
-
-    // delete graph to release memory
-    delete graph;
 }

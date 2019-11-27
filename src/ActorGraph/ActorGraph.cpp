@@ -39,8 +39,8 @@ ActorGraph::~ActorGraph() {
 }
 
 /* find the shortest path of the graph */
-void ActorGraph::find_unweighted_path(string startActorName,
-                                      string endActorName, ostream& outFile) {
+void ActorGraph::find_path(string startActorName, string endActorName,
+                           ostream& outFile, bool use_weighted_edges) {
     // if the start and end are the same actor, then output an empty line
     if (startActorName == endActorName) {
         outFile << endl;
@@ -56,31 +56,39 @@ void ActorGraph::find_unweighted_path(string startActorName,
     ActorNode* startActor = actors.at(startActorName);
     ActorNode* endActor = actors.at(endActorName);
 
-    // use BFS to find the shortest path in an unweighted graph
-    queue<ActorNode*> toExplore;
-    // reset the graph
-    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
-        itr->second->dist = INT32_MAX;
-        itr->second->prevEdge = 0;
-        itr->second->prevNode = 0;
-    }
-    startActor->dist = 0;
-    toExplore.push(startActor);
-    // build path
-    while (!toExplore.empty()) {
-        ActorNode* current = toExplore.front();
-        toExplore.pop();
-        for (MovieEdge* nextEdge : current->movies) {
-            for (string nextActorName : nextEdge->actors) {
-                ActorNode* next = actors.at(nextActorName);
-                if (next->dist == INT32_MAX) {
-                    next->dist = current->dist + 1;
-                    next->prevNode = current;
-                    next->prevEdge = nextEdge;
-                    // if get target end actor, break
-                    if (next == endActor) break;
-                    // otherwise, push it to the queue
-                    toExplore.push(next);
+    if (use_weighted_edges) {
+        // use Dijkstra's Algorithm to find the shortest path in a weighted
+        // graph. to be implemented
+        return;
+    } else {
+        // use BFS to find the shortest path in an unweighted graph
+        queue<ActorNode*> toExplore;
+        // reset the graph
+        for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+            itr->second->dist = INT32_MAX;
+            itr->second->prevEdge = 0;
+            itr->second->prevNode = 0;
+        }
+        startActor->dist = 0;
+        toExplore.push(startActor);
+        // build path
+        while (!toExplore.empty()) {
+            ActorNode* current = toExplore.front();
+            // if get target end actor, break
+            if (current == endActor) break;
+            toExplore.pop();
+            for (MovieEdge* nextEdge : current->movies) {
+                for (string nextActorName : nextEdge->actors) {
+                    ActorNode* next = actors.at(nextActorName);
+                    if (next->dist == INT32_MAX) {
+                        next->dist = current->dist + 1;
+                        next->prevNode = current;
+                        next->prevEdge = nextEdge;
+                        // if get target end actor, break
+                        // if (next == endActor) break;
+                        // otherwise, push it to the queue
+                        toExplore.push(next);
+                    }
                 }
             }
         }
@@ -102,10 +110,6 @@ void ActorGraph::find_unweighted_path(string startActorName,
     }
     outFile << path << endl;
 }
-
-/* find the shortest path of the weighted graph */
-void ActorGraph::find_weighted_path(string startActorName, string endActorName,
-                                    ostream& outFile) {}
 
 /* predict possible future collaberation of other actors and the given actor
  */

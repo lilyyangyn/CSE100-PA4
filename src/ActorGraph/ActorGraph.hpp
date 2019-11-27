@@ -78,13 +78,9 @@ class ActorGraph {
      */
     ActorGraph(void);
 
-    /* find the shortest path of the unweighted graph */
-    void find_unweighted_path(string startActorName, string endActorName,
-                              ostream& outFile);
-
-    /* find the shortest path of the weighted graph */
-    void find_weighted_path(string startActorName, string endActorName,
-                            ostream& outFile);
+    /* find the shortest path of the  graph */
+    void find_path(string startActorName, string endActorName, ostream& outFile,
+                   bool use_weighted_edges);
 
     /* predict possible future collaberation of other actors and the given actor
      */

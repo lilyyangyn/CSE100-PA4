@@ -47,13 +47,13 @@ TEST_F(SmallUnweightedGraphFixture, ACTOR_MOVIE_TEST) {
 TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
     ostringstream os;
     // test direct neighbor
-    graph.find_unweighted_path("Kevin Bacon", "James McAvoy", os);
+    graph.find_path("Kevin Bacon", "James McAvoy", os, false);
     EXPECT_EQ(os.str(),
               "(Kevin Bacon)--[X-Men: First Class#@2011]-->(James McAvoy)\n");
     os.str("");
 
     // test indirect long path
-    graph.find_unweighted_path("Kevin Bacon", "Tom Holland", os);
+    graph.find_path("Kevin Bacon", "Tom Holland", os, false);
     EXPECT_EQ(os.str(),
               "(Kevin Bacon)--[X-Men: First Class#@2011]-->(Michael "
               "Fassbender)--[Alien: Covenant#@2017]-->(Katherine "
@@ -61,7 +61,7 @@ TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
     os.str("");
 
     // test if start actor not exist
-    graph.find_unweighted_path("Nobody", "Tom Holland", os);
+    graph.find_path("Nobody", "Tom Holland", os, false);
     EXPECT_EQ(os.str(), "\n");
 }
 
@@ -69,7 +69,7 @@ TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
 TEST_F(SmallUnweightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
     // to be implemented
     ostringstream os;
-    graph.find_weighted_path("Kevin Bacon", "James McAvoy", os);
+    graph.find_path("Kevin Bacon", "James McAvoy", os, true);
 }
 
 /* check whether predictlink works well */

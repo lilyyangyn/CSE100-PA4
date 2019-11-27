@@ -12,10 +12,48 @@
 
 using namespace std;
 
-/* find the shortest path of a weighted graph */
-void find_weighted(ActorGraph* graph, string inFileName, string outFileName);
-/* find the shortest path of an unweighted graph */
-void find_unweighted(ActorGraph* graph, string inFileName, string outFileName);
+/* find the shortest path of the graph */
+void find_graph_paths(ActorGraph* graph, istream& inFile, ostream& outFile,
+                      bool use_weighted_edges) {
+    // write header
+    outFile << "(actor)--[movie#@year]-->(actor)--..." << endl;
+
+    bool have_header = false;
+
+    while (inFile) {
+        string s;
+
+        // get the next line
+        if (!getline(inFile, s)) break;
+
+        if (!have_header) {
+            // skip the header
+            have_header = true;
+            continue;
+        }
+
+        istringstream ss(s);
+        vector<string> targets;
+
+        while (ss) {
+            string str;
+
+            if (!getline(ss, str, '\t')) break;
+            targets.push_back(str);
+        }
+
+        if (targets.size() != 2) {
+            // we should have exactly 2 columns
+            continue;
+        }
+
+        // write path
+        graph->find_path(targets[0], targets[1], outFile, use_weighted_edges);
+    }
+    if (!inFile.eof()) {
+        cerr << "Failed to read the query file!\n";
+    }
+}
 
 /* Main program that runs the findpath */
 int main(int argc, char* argv[]) {
@@ -61,67 +99,20 @@ int main(int argc, char* argv[]) {
     // get graph info and construct graph
     ActorGraph* graph = new ActorGraph;
     if (graph->loadFromFile(infoFileName.c_str(), use_weighted_edges)) {
+        // prepare the query and output file
+        ifstream inFile;
+        inFile.open(inFileName);
+        ofstream outFile;
+        outFile.open(outFileName);
+
         // find the shortest path
-        if (use_weighted_edges) {
-            find_weighted(graph, inFileName, outFileName);
-        } else {
-            find_unweighted(graph, inFileName, outFileName);
-        }
+        find_graph_paths(graph, inFile, outFile, use_weighted_edges);
+
+        // close file
+        inFile.close();
+        outFile.close();
+
+        // delete graph to release memory
+        delete graph;
     }
-}
-
-/* find the shortest path of a weighted graph */
-void find_weighted(ActorGraph* graph, string inFileName, string outFileName) {}
-
-/* find the shortest path of an unweighted graph */
-void find_unweighted(ActorGraph* graph, string inFileName, string outFileName) {
-    // prepare the query and output file
-    ifstream inFile;
-    inFile.open(inFileName);
-    ofstream outFile;
-    outFile.open(outFileName);
-    outFile << "(actor)--[movie#@year]-->(actor)--..." << endl;
-
-    bool have_header = false;
-
-    while (inFile) {
-        string s;
-
-        // get the next line
-        if (!getline(inFile, s)) break;
-
-        if (!have_header) {
-            // skip the header
-            have_header = true;
-            continue;
-        }
-
-        istringstream ss(s);
-        vector<string> targets;
-
-        while (ss) {
-            string str;
-
-            if (!getline(ss, str, '\t')) break;
-            targets.push_back(str);
-        }
-
-        if (targets.size() != 2) {
-            // we should have exactly 2 columns
-            continue;
-        }
-
-        // write path
-        graph->find_unweighted_path(targets[0], targets[1], outFile);
-    }
-    if (!inFile.eof()) {
-        cerr << "Failed to read the query file!\n";
-    }
-
-    // close file
-    inFile.close();
-    outFile.close();
-
-    // delete graph to release memory
-    delete graph;
 }
