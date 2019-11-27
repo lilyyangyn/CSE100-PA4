@@ -3,9 +3,8 @@
  * Author: Yuening YANG, Shenlang ZHOU
  * Date:   11/18/2019
  *
- * This file is meant to exist as a container for starter code that you can use
- * to read the input file format defined in imdb_2019.tsv. Feel free to modify
- * any/all aspects as you wish.
+ * This file shows the implementation details of ActorGraph class (and all its
+ * inner classes) methods, which are declared in 'ActorGraph.hpp' file.
  */
 
 #include "ActorGraph.hpp"
