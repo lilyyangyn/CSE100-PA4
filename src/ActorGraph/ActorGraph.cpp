@@ -380,3 +380,19 @@ bool ActorGraph::ActorNode::DistComp::operator()(ActorNode* left,
                                                  ActorNode* right) const {
     return left->dist > right->dist;
 }
+
+/* Constructor of DisjointSet */
+ActorGraph::DisjointSet::DisjointSet(ActorNode* actor)
+    : sentinel(actor), weight(1) {
+    // set the parent to nullpointer
+    actor->disjointSetParent = 0;
+}
+
+/* union 2 sets, which contain actor1 and actor2 respectively */
+ActorGraph::ActorNode* ActorGraph::DisjointSet::union_set(ActorNode* actor1,
+                                                          ActorNode* actor2) {}
+
+/* find the sentinel node of the set actor is in. Compress path at the
+ * same time */
+ActorGraph::ActorNode* ActorGraph::DisjointSet::find_sentinel(
+    ActorNode* actor) {}

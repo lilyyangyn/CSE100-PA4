@@ -58,6 +58,8 @@ class ActorGraph {
 
         unsigned int priority;  // priority used in link prediction
 
+        ActorNode* disjointSetParent;  // parent node in the disjoint set
+
         /* Constructo that initialize an ActorNode */
         ActorNode(string name);
 
@@ -124,6 +126,21 @@ class ActorGraph {
      * Destuctor of the Actor graph
      */
     ~ActorGraph();
+
+  public:
+    /** inner set, which are used to construct disjoint set */
+    struct DisjointSet {
+        ActorNode* sentinel;  // the sentinel node of the disjoint set
+        int weight;
+
+        /* Constructor of DisjointSet */
+        DisjointSet(ActorNode* actor);
+        /* union 2 sets, which contain actor1 and actor2 respectively */
+        ActorNode* union_set(ActorNode* actor1, ActorNode* actor2);
+        /* find the sentinel node of the set actor is in. Compress path at the
+         * same time */
+        ActorNode* find_sentinel(ActorNode* actor);
+    };
 };
 
 #endif  // ACTORGRAPH_HPP
