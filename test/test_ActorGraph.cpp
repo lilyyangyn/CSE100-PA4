@@ -110,9 +110,23 @@ TEST_F(SmallUnweightedGraphFixture, PREDICT_LINK_TEST) {
     os1.str("");
     os2.str("");
     // normal prediction 2 (same priority)
+    graph.insert("ZActor1", "Movie1", 2011, false);
+    graph.insert("ZActor2", "Movie2", 2011, false);
+    graph.insert("ZActor3", "Movie3", 2011, false);
+    graph.insert("Robert Downey Jr.", "Movie1", 2011, false);
+    graph.insert("Robert Downey Jr.", "Movie2", 2011, false);
+    graph.insert("Robert Downey Jr.", "Movie3", 2011, false);
+    graph.insert("ZActor1", "Movie11", 2011, false);
+    graph.insert("ZActor2", "Movie22", 2011, false);
+    graph.insert("ZActor3", "Movie33", 2011, false);
+    graph.insert("ZActor11", "Movie11", 2011, false);
+    graph.insert("ZActor22", "Movie22", 2011, false);
+    graph.insert("ZActor33", "Movie33", 2011, false);
     graph.predictlink("Robert Downey Jr.", os1, os2);
-    EXPECT_EQ(os1.str(), "Samuel L. Jackson\tTom Holland\t\n");
-    EXPECT_EQ(os2.str(), "James McAvoy\tKatherine Waterston\t\n");
+    EXPECT_EQ(os1.str(),
+              "Samuel L. Jackson\tTom Holland\tZActor1\tZActor2\t\n");
+    EXPECT_EQ(os2.str(),
+              "James McAvoy\tKatherine Waterston\tZActor11\tZActor22\t\n");
 
     os1.str("");
     os2.str("");
