@@ -1,3 +1,9 @@
+/**
+ * This file performs unit tests for ActorGraph.
+ *
+ * Author: Yuening YANG, Shenlang Zhou
+ * Email: y3yang@ucse.edu
+ */
 #include <gtest/gtest.h>
 #include <iostream>
 #include "ActorGraph.hpp"
@@ -5,6 +11,10 @@
 using namespace std;
 using namespace testing;
 
+/**
+ * A simple test fixture of unweighted graph from which multiple tests can be
+ * written. Rebuit after every test.
+ */
 class SmallUnweightedGraphFixture : public ::testing::Test {
   protected:
     ActorGraph graph;
