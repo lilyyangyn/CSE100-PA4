@@ -252,6 +252,28 @@ void ActorGraph::findMST(ostream& outFile) {
     sort(edges.begin(), edges.end(), MovieEdge::WeightComp());
 }
 
+/* helper method to insert (actor, movie) pair into the tree */
+void ActorGraph::insert(string actor, string movie_title, int year,
+                        bool use_weighted_edges) {
+    string movie_key = movie_title + "#@" + to_string(year);
+
+    // create new node and edge if not exists
+    if (!actors.count(actor)) {
+        // key not exists, create new actor node
+        actors.emplace(actor, new ActorNode(actor));
+    }
+    if (!movies.count(movie_key)) {
+        // key not exists, create new movie edge
+        movies.emplace(movie_key, new MovieEdge(movie_key, movie_title, year,
+                                                use_weighted_edges));
+    }
+
+    // update the list. there's impossible for repitition of (actor,
+    // movie)
+    movies[movie_key]->actors.insert(actor);
+    actors[actor]->movies.insert(movies[movie_key]);
+}
+
 /** You can modify this method definition as you wish
  *
  * Load the graph from a tab-delimited file of actor->movie relationships.
@@ -302,23 +324,8 @@ bool ActorGraph::loadFromFile(const char* in_filename,
         string actor(record[0]);
         string movie_title(record[1]);
         int year = stoi(record[2]);
-        string movie_key = movie_title + "#@" + to_string(year);
 
-        // create new node and edge if not exists
-        if (!actors.count(actor)) {
-            // key not exists, create new actor node
-            actors.emplace(actor, new ActorNode(actor));
-        }
-        if (!movies.count(movie_key)) {
-            // key not exists, create new movie edge
-            movies.emplace(movie_key, new MovieEdge(movie_key, movie_title,
-                                                    year, use_weighted_edges));
-        }
-
-        // update the list. there's impossible for repitition of (actor,
-        // movie)
-        movies[movie_key]->actors.insert(actor);
-        actors[actor]->movies.insert(movies[movie_key]);
+        insert(actor, movie_title, year, use_weighted_edges);
     }
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";

@@ -102,8 +102,12 @@ class ActorGraph {
     void predictlink(string targetActorName, ostream& outFile1,
                      ostream& outFile2);
 
+
     /* find the minimal spanning tree of the connected graph */
     void findMST(ostream& outFile);
+
+    /* helper method to insert (actor, movie) pair into the tree */
+    void insert(string actor, string movie_title, int year, bool use_weighted_edges);
 
     /** You can modify this method definition as you wish
      *
