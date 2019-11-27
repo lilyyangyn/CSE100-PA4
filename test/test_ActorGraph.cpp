@@ -22,10 +22,13 @@ TEST_F(SmallUnweightedGraphFixture, ACTOR_MOVIE_TEST) {
                              "Michael Fassbender", "Samuel L. Jackson",
                              "Robert Downey Jr.",  "Tom Holland",
                              "Katherine Waterston"};
-    vector<string> movies = {
-        "X-Men: First Class", "X-Men: Apocalypse", "Glass",
-        "Alien: Covenant",    "Avengers: Endgame", "Spider-Man: Homecoming",
-        "The Current War"};
+    vector<string> movies = {"X-Men: First Class#@2011",
+                             "X-Men: Apocalypse#@2016",
+                             "Glass#@2019",
+                             "Alien: Covenant#@2017",
+                             "Avengers: Endgame#@2019",
+                             "Spider-Man: Homecoming#@2017",
+                             "The Current War#@2017"};
 
     // expect the unordered_map contains and only contains all actors above
     ASSERT_EQ(graph.getActors().size(), actors.size());

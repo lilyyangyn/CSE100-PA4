@@ -98,8 +98,7 @@ void ActorGraph::find_unweighted_path(string startActorName,
     while (actor != startActor) {
         movie = actor->prevEdge;
         actor = actor->prevNode;
-        path = "(" + actor->name + ")--[" + movie->title + "#@" +
-               to_string(movie->year) + "]-->" + path;
+        path = "(" + actor->name + ")--[" + movie->key + "]-->" + path;
     }
     outFile << path << endl;
 }
@@ -267,22 +266,23 @@ bool ActorGraph::loadFromFile(const char* in_filename,
         string actor(record[0]);
         string movie_title(record[1]);
         int year = stoi(record[2]);
+        string movie_key = movie_title + "#@" + to_string(year);
 
         // create new node and edge if not exists
         if (!actors.count(actor)) {
             // key not exists, create new actor node
             actors.emplace(actor, new ActorNode(actor));
         }
-        if (!movies.count(movie_title)) {
+        if (!movies.count(movie_key)) {
             // key not exists, create new movie edge
-            movies.emplace(movie_title, new MovieEdge(movie_title, year,
-                                                      use_weighted_edges));
+            movies.emplace(movie_key, new MovieEdge(movie_key, movie_title,
+                                                    year, use_weighted_edges));
         }
 
         // update the list. there's impossible for repitition of (actor,
         // movie)
-        movies[movie_title]->actors.insert(actor);
-        actors[actor]->movies.insert(movies[movie_title]);
+        movies[movie_key]->actors.insert(actor);
+        actors[actor]->movies.insert(movies[movie_key]);
     }
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";
@@ -294,8 +294,9 @@ bool ActorGraph::loadFromFile(const char* in_filename,
 }
 
 /* Constructo that initialize a MovieEdge */
-ActorGraph::MovieEdge::MovieEdge(string name, int year, bool use_weighted_edges)
-    : title(name), year(year) {
+ActorGraph::MovieEdge::MovieEdge(string key, string name, int year,
+                                 bool use_weighted_edges)
+    : key(key), title(name), year(year) {
     if (use_weighted_edges) {
         weight = WEIGHT_HELPER - year;
     } else {

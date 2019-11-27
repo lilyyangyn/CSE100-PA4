@@ -28,6 +28,7 @@ class ActorGraph {
     /** An inner class, instances of which are edges in an ActorGraph */
     class MovieEdge {
       public:
+        string key;
         string title;  // movie name
         int year;      // movie year
         int weight;    // weight = age of the movie = 1 + (2019 - Y)
@@ -35,7 +36,7 @@ class ActorGraph {
             actors;  // list of actors who have played in this movie
 
         /* Constructo that initialize a MovieEdge */
-        MovieEdge(string name, int year, bool use_weighted_edges);
+        MovieEdge(string key, string name, int year, bool use_weighted_edges);
     };
 
     /** An inner class, instances of which are vertices in an ActorGraph */
