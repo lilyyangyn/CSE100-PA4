@@ -18,8 +18,8 @@
 
 using namespace std;
 
-const int WEIGHT_HELPER = 2020;
-const int LINK_PREDICTOR_SIZE = 4;
+const int WEIGHT_HELPER = 2020;     // current year + 1
+const int LINK_PREDICTOR_SIZE = 4;  // number of actors wanted in linkpredictor
 
 /**
  * Constructor of the Actor graph
@@ -56,20 +56,43 @@ void ActorGraph::find_path(string startActorName, string endActorName,
     ActorNode* startActor = actors.at(startActorName);
     ActorNode* endActor = actors.at(endActorName);
 
+    // reset the graph
+    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+        itr->second->dist = INT32_MAX;
+        itr->second->prevEdge = 0;
+        itr->second->prevNode = 0;
+    }
+    startActor->dist = 0;
+
     if (use_weighted_edges) {
         // use Dijkstra's Algorithm to find the shortest path in a weighted
-        // graph. to be implemented
-        return;
+        // graph.
+        priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::DistComp>
+            toExplore;
+        toExplore.push(startActor);
+
+        while (!toExplore.empty()) {
+            ActorNode* current = toExplore.top();
+            // if get target end actor, break
+            if (current == endActor) break;
+            toExplore.pop();
+            for (MovieEdge* nextEdge : current->movies) {
+                int newDist = current->dist + nextEdge->weight;
+                for (string nextActorName : nextEdge->actors) {
+                    ActorNode* next = actors.at(nextActorName);
+                    if (newDist < next->dist) {
+                        next->dist = newDist;
+                        next->prevNode = current;
+                        next->prevEdge = nextEdge;
+                        // push it to the priority queue
+                        toExplore.push(next);
+                    }
+                }
+            }
+        }
     } else {
         // use BFS to find the shortest path in an unweighted graph
         queue<ActorNode*> toExplore;
-        // reset the graph
-        for (auto itr = actors.begin(); itr != actors.end(); itr++) {
-            itr->second->dist = INT32_MAX;
-            itr->second->prevEdge = 0;
-            itr->second->prevNode = 0;
-        }
-        startActor->dist = 0;
         toExplore.push(startActor);
         // build path
         while (!toExplore.empty()) {
@@ -84,9 +107,7 @@ void ActorGraph::find_path(string startActorName, string endActorName,
                         next->dist = current->dist + 1;
                         next->prevNode = current;
                         next->prevEdge = nextEdge;
-                        // if get target end actor, break
-                        // if (next == endActor) break;
-                        // otherwise, push it to the queue
+                        // push it to the queue
                         toExplore.push(next);
                     }
                 }
@@ -171,7 +192,7 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
     }
 
     // get the 4 of highest priority of actors who have collaberated with target
-    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::PriorityComp>
         collaberated_pq;
     for (auto itr = collaberated.begin(); itr != collaberated.end(); itr++) {
         if ((*itr)->name == targetActorName) {
@@ -197,7 +218,7 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
 
     // get the 4 of highest priority of actors who have not collaberated with
     // target
-    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::PriorityComp>
         not_collaberated_pq;
     for (auto itr = not_collaberated.begin(); itr != not_collaberated.end();
          itr++) {
@@ -219,6 +240,9 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
     }
     outFile2 << output2 << endl;
 }
+
+/* find the minimal spanning tree of the connected graph */
+void ActorGraph::findMST(ostream& outFile) {}
 
 /** You can modify this method definition as you wish
  *
@@ -308,6 +332,13 @@ ActorGraph::MovieEdge::MovieEdge(string key, string name, int year,
     }
 }
 
+/* a comparator of MovieEdge pointer.
+ * The edge with lower weight value will have appear first */
+bool ActorGraph::MovieEdge::WeightComp::operator()(MovieEdge* left,
+                                                   MovieEdge* right) const {
+    return left->weight < right->weight;
+}
+
 /* get weight of the edge between the given actor and current actor */
 int ActorGraph::ActorNode::getEdgeNum(string actorName) {
     int weight = 0;
@@ -322,11 +353,22 @@ int ActorGraph::ActorNode::getEdgeNum(string actorName) {
 /* Constructo that initialize an ActorNode */
 ActorGraph::ActorNode::ActorNode(string name) : name(name), priority(0) {}
 
-bool ActorGraph::ActorNode::ActorNodeComp::operator()(ActorNode* left,
-                                                      ActorNode* right) const {
+/* a comparator of ActorNode pointer.
+ * The node with lower priority value will have higher priority
+ * If 2 nodes are of the same priority value the node with name in
+ * higher alphebetic order will have higher priority */
+bool ActorGraph::ActorNode::PriorityComp::operator()(ActorNode* left,
+                                                     ActorNode* right) const {
     if (left->priority == right->priority) {
         return left->name < right->name;
     } else {
         return left->priority > right->priority;
     }
+}
+
+/* a comparator of ActorNode pointer.
+ * The node with lower dist value will have higher priority */
+bool ActorGraph::ActorNode::DistComp::operator()(ActorNode* left,
+                                                 ActorNode* right) const {
+    return left->dist > right->dist;
 }

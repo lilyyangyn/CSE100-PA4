@@ -37,6 +37,13 @@ class ActorGraph {
 
         /* Constructo that initialize a MovieEdge */
         MovieEdge(string key, string name, int year, bool use_weighted_edges);
+
+        /* Comparator of MovieEdge pointer. */
+        struct WeightComp {
+            /* a comparator of MovieEdge pointer.
+             * The edge with lower weight value will have appear first */
+            bool operator()(MovieEdge* left, MovieEdge* right) const;
+        };
     };
 
     /** An inner class, instances of which are vertices in an ActorGraph */
@@ -59,11 +66,18 @@ class ActorGraph {
         int getEdgeNum(string actorName);
 
         /* Comparator of ActorNode pointer. */
-        struct ActorNodeComp {
+        struct PriorityComp {
             /* a comparator of ActorNode pointer.
              * The node with lower priority value will have higher priority
              * If 2 nodes are of the same priority value the node with name in
              * higher alphebetic order will have higher priority */
+            bool operator()(ActorNode* left, ActorNode* right) const;
+        };
+
+        /* Comparator of ActorNode pointer. */
+        struct DistComp {
+            /* a comparator of ActorNode pointer.
+             * The node with lower dist value will have higher priority */
             bool operator()(ActorNode* left, ActorNode* right) const;
         };
     };
@@ -86,6 +100,9 @@ class ActorGraph {
      */
     void predictlink(string targetActorName, ostream& outFile1,
                      ostream& outFile2);
+
+    /* find the minimal spanning tree of the connected graph */
+    void findMST(ostream& outFile);
 
     /** You can modify this method definition as you wish
      *

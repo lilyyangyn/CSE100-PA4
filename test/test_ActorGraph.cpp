@@ -16,6 +16,17 @@ class SmallUnweightedGraphFixture : public ::testing::Test {
     }
 };
 
+class SmallWeightedGraphFixture : public ::testing::Test {
+  protected:
+    ActorGraph graph;
+
+  public:
+    SmallWeightedGraphFixture() {
+        string infoFileName = "/Code/cse100_pa4/data/imdb_small_sample.tsv";
+        graph.loadFromFile(infoFileName.c_str(), true);
+    }
+};
+
 /* check if all actors and movies read successfully */
 TEST_F(SmallUnweightedGraphFixture, ACTOR_MOVIE_TEST) {
     vector<string> actors = {"Kevin Bacon",        "James McAvoy",
@@ -66,10 +77,27 @@ TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
 }
 
 /* check the shortest path in weighted mode */
-TEST_F(SmallUnweightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
-    // to be implemented
+TEST_F(SmallWeightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
     ostringstream os;
-    graph.find_path("Kevin Bacon", "James McAvoy", os, true);
+    // test direct neighbor
+    graph.find_path("Michael Fassbender", "James McAvoy", os, true);
+    EXPECT_EQ(
+        os.str(),
+        "(Michael Fassbender)--[X-Men: Apocalypse#@2016]-->(James McAvoy)\n");
+    os.str("");
+
+    // test indirect long path
+    graph.find_path("Kevin Bacon", "Tom Holland", os, true);
+    EXPECT_EQ(os.str(),
+              "(Kevin Bacon)--[X-Men: First Class#@2011]-->(James "
+              "McAvoy)--[Glass#@2019]-->(Samuel L. Jackson)--[Avengers: "
+              "Endgame#@2019]-->(Robert Downey Jr.)--[Spider-Man: "
+              "Homecoming#@2017]-->(Tom Holland)\n");
+    os.str("");
+
+    // test if start actor not exist
+    graph.find_path("Nobody", "Tom Holland", os, true);
+    EXPECT_EQ(os.str(), "\n");
 }
 
 /* check whether predictlink works well */
