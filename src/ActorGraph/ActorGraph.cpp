@@ -322,6 +322,10 @@ int ActorGraph::ActorNode::getEdgeNum(string actorName) {
 /* Constructo that initialize an ActorNode */
 ActorGraph::ActorNode::ActorNode(string name) : name(name), priority(0) {}
 
+/* a comparator of ActorNode pointer.
+ * The node with lower priority value will have higher priority
+ * If 2 nodes are of the same priority value the node with name in
+ * higher alphebetic order will have higher priority */
 bool ActorGraph::ActorNode::ActorNodeComp::operator()(ActorNode* left,
                                                       ActorNode* right) const {
     if (left->priority == right->priority) {
