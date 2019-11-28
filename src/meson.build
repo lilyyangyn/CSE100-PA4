@@ -7,3 +7,7 @@ pathfinder_exe = executable('pathfinder.cpp.executable',
 linkpredictor_exe = executable('linkpredictor.cpp.executable',
     sources: ['linkpredictor.cpp'],
     dependencies: [cxxopts_dep, actor_graph_dep])
+
+movietraveler_exe = executable('movietraveler.cpp.executable',
+    sources: ['movietraveler.cpp'],
+    dependencies: [cxxopts_dep, actor_graph_dep])

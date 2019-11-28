@@ -8,6 +8,7 @@
  */
 
 #include "ActorGraph.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <queue>
@@ -17,8 +18,8 @@
 
 using namespace std;
 
-const int WEIGHT_HELPER = 2020;
-const int LINK_PREDICTOR_SIZE = 4;
+const int WEIGHT_HELPER = 2020;     // current year + 1
+const int LINK_PREDICTOR_SIZE = 4;  // number of actors wanted in linkpredictor
 
 /**
  * Constructor of the Actor graph
@@ -55,20 +56,43 @@ void ActorGraph::find_path(string startActorName, string endActorName,
     ActorNode* startActor = actors.at(startActorName);
     ActorNode* endActor = actors.at(endActorName);
 
+    // reset the graph
+    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+        itr->second->dist = INT32_MAX;
+        itr->second->prevEdge = 0;
+        itr->second->prevNode = 0;
+    }
+    startActor->dist = 0;
+
     if (use_weighted_edges) {
         // use Dijkstra's Algorithm to find the shortest path in a weighted
-        // graph. to be implemented
-        return;
+        // graph.
+        priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::DistComp>
+            toExplore;
+        toExplore.push(startActor);
+
+        while (!toExplore.empty()) {
+            ActorNode* current = toExplore.top();
+            // if get target end actor, break
+            if (current == endActor) break;
+            toExplore.pop();
+            for (MovieEdge* nextEdge : current->movies) {
+                int newDist = current->dist + nextEdge->weight;
+                for (string nextActorName : nextEdge->actors) {
+                    ActorNode* next = actors.at(nextActorName);
+                    if (newDist < next->dist) {
+                        next->dist = newDist;
+                        next->prevNode = current;
+                        next->prevEdge = nextEdge;
+                        // push it to the priority queue
+                        toExplore.push(next);
+                    }
+                }
+            }
+        }
     } else {
         // use BFS to find the shortest path in an unweighted graph
         queue<ActorNode*> toExplore;
-        // reset the graph
-        for (auto itr = actors.begin(); itr != actors.end(); itr++) {
-            itr->second->dist = INT32_MAX;
-            itr->second->prevEdge = 0;
-            itr->second->prevNode = 0;
-        }
-        startActor->dist = 0;
         toExplore.push(startActor);
         // build path
         while (!toExplore.empty()) {
@@ -83,9 +107,7 @@ void ActorGraph::find_path(string startActorName, string endActorName,
                         next->dist = current->dist + 1;
                         next->prevNode = current;
                         next->prevEdge = nextEdge;
-                        // if get target end actor, break
-                        // if (next == endActor) break;
-                        // otherwise, push it to the queue
+                        // push it to the queue
                         toExplore.push(next);
                     }
                 }
@@ -170,7 +192,7 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
     }
 
     // get the 4 of highest priority of actors who have collaberated with target
-    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::PriorityComp>
         collaberated_pq;
     for (auto itr = collaberated.begin(); itr != collaberated.end(); itr++) {
         if ((*itr)->name == targetActorName) {
@@ -196,7 +218,7 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
 
     // get the 4 of highest priority of actors who have not collaberated with
     // target
-    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::ActorNodeComp>
+    priority_queue<ActorNode*, vector<ActorNode*>, ActorNode::PriorityComp>
         not_collaberated_pq;
     for (auto itr = not_collaberated.begin(); itr != not_collaberated.end();
          itr++) {
@@ -217,6 +239,72 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
         not_collaberated_pq.pop();
     }
     outFile2 << output2 << endl;
+}
+
+/* find the minimal spanning tree of the connected graph */
+void ActorGraph::findMST(ostream& outFile, bool show_abstract_only) {
+    vector<MovieEdge*> edges;
+    // push all movie edges into vector. each movie edge appears only ONCE
+    for (auto itr = movies.begin(); itr != movies.end(); itr++) {
+        edges.push_back(itr->second);
+    }
+    // sort edges according to their weight in ascending order
+    sort(edges.begin(), edges.end(), MovieEdge::WeightComp());
+
+    // initial V and E of the MST
+    vector<string> movie_traveling;
+
+    // construct the MST
+    int edgeWeights = 0;
+    // create disjoint set
+    DisjointSet ds(actors);
+    for (int m = 0; m < edges.size(); m++) {
+        unordered_set<string>& actorsInMovie = edges[m]->actors;
+        int weight = edges[m]->weight;
+        // pair each two actors who played in this movie
+        for (auto itr1 = actorsInMovie.begin(); itr1 != actorsInMovie.end();
+             itr1++) {
+            for (auto itr2 = actorsInMovie.begin(); itr2 != actorsInMovie.end();
+                 itr2++) {
+                string sentinel1 = ds.find_sentinel((*itr1));
+                string sentinel2 = ds.find_sentinel((*itr2));
+                // if not in the same set
+                if (sentinel1 != sentinel2) {
+                    // add this edge to MST
+                    string path = "(" + (*itr1) + ")<--[" + edges[m]->key +
+                                  "]-->(" + (*itr2) + ")";
+                    movie_traveling.push_back(path);
+                    // union two disjoint set
+                    ds.union_set(sentinel1, sentinel2);
+                    // increasing edge weights
+                    edgeWeights += weight;
+
+                    // the total num of edges in MST should be |V| - 1. If
+                    // reach, then write output stream and return
+                    if (movie_traveling.size() == actors.size() - 1) {
+                        // write output file
+                        if (!show_abstract_only) {
+                            outFile << "(actor)<--[movie#@year]-->(actor)"
+                                    << endl;
+                            for (int i = 0; i < movie_traveling.size(); i++) {
+                                outFile << movie_traveling[i] << endl;
+                            }
+                        }
+                        outFile << "#NODE CONNECTED: " << actors.size() << endl;
+                        outFile << "#EDGE CHOSEN: " << movie_traveling.size()
+                                << endl;
+                        outFile << "TOTAL EDGE WEIGHTS: " << edgeWeights
+                                << endl;
+                        return;
+                    }
+
+                    // switch to another actor to let him introduce you to new
+                    // actors
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /* helper method to insert (actor, movie) pair into the tree */
@@ -314,6 +402,13 @@ ActorGraph::MovieEdge::MovieEdge(string key, string name, int year,
     }
 }
 
+/* a comparator of MovieEdge pointer.
+ * The edge with lower weight value will have appear first */
+bool ActorGraph::MovieEdge::WeightComp::operator()(MovieEdge* left,
+                                                   MovieEdge* right) const {
+    return left->weight < right->weight;
+}
+
 /* get weight of the edge between the given actor and current actor */
 int ActorGraph::ActorNode::getEdgeNum(string actorName) {
     int weight = 0;
@@ -332,11 +427,58 @@ ActorGraph::ActorNode::ActorNode(string name) : name(name), priority(0) {}
  * The node with lower priority value will have higher priority
  * If 2 nodes are of the same priority value the node with name in
  * higher alphebetic order will have higher priority */
-bool ActorGraph::ActorNode::ActorNodeComp::operator()(ActorNode* left,
-                                                      ActorNode* right) const {
+bool ActorGraph::ActorNode::PriorityComp::operator()(ActorNode* left,
+                                                     ActorNode* right) const {
     if (left->priority == right->priority) {
         return left->name < right->name;
     } else {
         return left->priority > right->priority;
     }
+}
+
+/* a comparator of ActorNode pointer.
+ * The node with lower dist value will have higher priority */
+bool ActorGraph::ActorNode::DistComp::operator()(ActorNode* left,
+                                                 ActorNode* right) const {
+    return left->dist > right->dist;
+}
+
+/* Constructor of DisjointSet */
+ActorGraph::DisjointSet::DisjointSet(
+    unordered_map<string, ActorNode*>& actors) {
+    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+        // create a disjoint set for each node by setting the parent equal to
+        // the node itself
+        parents.emplace(itr->first, itr->first);
+        weights.emplace(itr->first, 1);
+    }
+}
+
+/* union 2 sets, which contain actor1 and actor2 respectively */
+void ActorGraph::DisjointSet::union_set(string actor1, string actor2) {
+    // get parents of both nodes respectively
+    string sentinel1 = find_sentinel(actor1);
+    string sentinel2 = find_sentinel(actor2);
+    if (sentinel1 != sentinel2) {
+        // not in the same set, use the sentinel with larger weight as parent
+        if (weights.at(sentinel1) > weights.at(sentinel2)) {
+            parents.at(sentinel2) = sentinel1;
+            weights.at(sentinel1) += weights.at(sentinel2);
+        } else {
+            parents.at(sentinel1) = sentinel2;
+            weights.at(sentinel2) += weights.at(sentinel1);
+        }
+    }
+}
+
+/* find the sentinel node of the set actor is in. Compress path at the
+ * same time */
+string ActorGraph::DisjointSet::find_sentinel(string actor) {
+    // get parent node
+    string parent = parents.at(actor);
+    // actor is not the sentinel node
+    if (parent != actor) {
+        parents.at(actor) = find_sentinel(parent);
+    }
+    return parents.at(actor);
 }

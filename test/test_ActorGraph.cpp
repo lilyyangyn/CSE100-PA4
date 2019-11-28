@@ -40,6 +40,30 @@ class SmallUnweightedGraphFixture : public ::testing::Test {
     }
 };
 
+class SmallWeightedGraphFixture : public ::testing::Test {
+  protected:
+    ActorGraph graph;
+
+  public:
+    SmallWeightedGraphFixture() {
+        graph.insert("Kevin Bacon", "X-Men: First Class", 2011, true);
+        graph.insert("James McAvoy", "X-Men: First Class", 2011, true);
+        graph.insert("James McAvoy", "X-Men: Apocalypse", 2016, true);
+        graph.insert("James McAvoy", "Glass", 2019, true);
+        graph.insert("Michael Fassbender", "X-Men: First Class", 2011, true);
+        graph.insert("Michael Fassbender", "X-Men: Apocalypse", 2016, true);
+        graph.insert("Michael Fassbender", "Alien: Covenant", 2017, true);
+        graph.insert("Samuel L. Jackson", "Glass", 2019, true);
+        graph.insert("Samuel L. Jackson", "Avengers: Endgame", 2019, true);
+        graph.insert("Robert Downey Jr.", "Avengers: Endgame", 2019, true);
+        graph.insert("Robert Downey Jr.", "Spider-Man: Homecoming", 2017, true);
+        graph.insert("Tom Holland", "Spider-Man: Homecoming", 2017, true);
+        graph.insert("Tom Holland", "The Current War", 2017, true);
+        graph.insert("Katherine Waterston", "Alien: Covenant", 2017, true);
+        graph.insert("Katherine Waterston", "The Current War", 2017, true);
+    }
+};
+
 /* check if all actors and movies read successfully */
 TEST_F(SmallUnweightedGraphFixture, ACTOR_MOVIE_TEST) {
     vector<string> actors = {"Kevin Bacon",        "James McAvoy",
@@ -90,10 +114,27 @@ TEST_F(SmallUnweightedGraphFixture, UNWEIGHTED_SHORTEST_PATH_TEST) {
 }
 
 /* check the shortest path in weighted mode */
-TEST_F(SmallUnweightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
-    // to be implemented
+TEST_F(SmallWeightedGraphFixture, WEIGHTED_SHORTEST_PATH_TEST) {
     ostringstream os;
-    graph.find_path("Kevin Bacon", "James McAvoy", os, true);
+    // test direct neighbor
+    graph.find_path("Michael Fassbender", "James McAvoy", os, true);
+    EXPECT_EQ(
+        os.str(),
+        "(Michael Fassbender)--[X-Men: Apocalypse#@2016]-->(James McAvoy)\n");
+    os.str("");
+
+    // test indirect long path
+    graph.find_path("Kevin Bacon", "Tom Holland", os, true);
+    EXPECT_EQ(os.str(),
+              "(Kevin Bacon)--[X-Men: First Class#@2011]-->(James "
+              "McAvoy)--[Glass#@2019]-->(Samuel L. Jackson)--[Avengers: "
+              "Endgame#@2019]-->(Robert Downey Jr.)--[Spider-Man: "
+              "Homecoming#@2017]-->(Tom Holland)\n");
+    os.str("");
+
+    // test if start actor not exist
+    graph.find_path("Nobody", "Tom Holland", os, true);
+    EXPECT_EQ(os.str(), "\n");
 }
 
 /* check whether predictlink works well */
@@ -134,6 +175,16 @@ TEST_F(SmallUnweightedGraphFixture, PREDICT_LINK_TEST) {
     graph.predictlink("Nobody", os1, os2);
     EXPECT_EQ(os1.str(), "\n");
     EXPECT_EQ(os2.str(), "\n");
+}
+
+/* check whether findMST works well */
+TEST_F(SmallWeightedGraphFixture, FIND_MST_TEST) {
+    ostringstream os;
+    graph.findMST(os, true);
+
+    EXPECT_EQ(os.str(),
+              "#NODE CONNECTED: 7\n#EDGE CHOSEN: "
+              "6\nTOTAL EDGE WEIGHTS: 20\n");
 }
 
 /* find number of edges between two actor nodes */
