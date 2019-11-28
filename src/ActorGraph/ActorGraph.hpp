@@ -14,7 +14,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-// Maybe include some data structures here
 
 using namespace std;
 
@@ -52,7 +51,7 @@ class ActorGraph {
         unordered_set<MovieEdge*>
             movies;  // list of movies the actor has played
 
-        unsigned int dist;
+        unsigned int dist;    // dist from the start actor
         ActorNode* prevNode;  // prev actor node
         MovieEdge* prevEdge;  // prev movie edge
 
@@ -93,7 +92,7 @@ class ActorGraph {
      */
     ActorGraph(void);
 
-    /* find the shortest path of the  graph */
+    /* find the shortest path of the graph */
     void find_path(string startActorName, string endActorName, ostream& outFile,
                    bool use_weighted_edges);
 
@@ -105,7 +104,7 @@ class ActorGraph {
     /* find the minimal spanning tree of the connected graph */
     void findMST(ostream& outFile, bool show_abstract_only);
 
-    /* helper method to insert (actor, movie) pair into the tree */
+    /* helper method to insert (actor, movie) pair into the graph */
     void insert(string actor, string movie_title, int year,
                 bool use_weighted_edges);
 
@@ -127,7 +126,7 @@ class ActorGraph {
     unordered_map<string, MovieEdge*> getMovies() { return movies; }
 
     /**
-     * Destuctor of the Actor graph
+     * Destuctor of the Actor Graph
      */
     ~ActorGraph();
 

@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     }
 
     // get graph info and construct graph
-    ActorGraph* graph = new ActorGraph;
+    ActorGraph* graph = new ActorGraph();
     if (graph->loadFromFile(infoFileName.c_str(), true)) {
         // prepare the query and output file
         ofstream outFile;

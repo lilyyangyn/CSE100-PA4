@@ -272,7 +272,7 @@ void ActorGraph::findMST(ostream& outFile, bool show_abstract_only) {
                 if (sentinel1 != sentinel2) {
                     // add this edge to MST
                     string path = "(" + (*itr1) + ")<--[" + edges[m]->key +
-                                  "]-->(" + (*itr2) + ")";
+                                  "]-->(" + (*itr2) + ")\n";
                     movie_traveling.push_back(path);
                     // union two disjoint set
                     ds.union_set(sentinel1, sentinel2);
@@ -284,10 +284,9 @@ void ActorGraph::findMST(ostream& outFile, bool show_abstract_only) {
                     if (movie_traveling.size() == actors.size() - 1) {
                         // write output file
                         if (!show_abstract_only) {
-                            outFile << "(actor)<--[movie#@year]-->(actor)"
-                                    << endl;
+                            outFile << "(actor)<--[movie#@year]-->(actor)\n";
                             for (int i = 0; i < movie_traveling.size(); i++) {
-                                outFile << movie_traveling[i] << endl;
+                                outFile << movie_traveling[i];
                             }
                         }
                         outFile << "#NODE CONNECTED: " << actors.size() << endl;

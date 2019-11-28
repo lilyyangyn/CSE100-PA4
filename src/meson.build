@@ -1,4 +1,5 @@
 subdir('ActorGraph')
+subdir('CityGraph')
 
 pathfinder_exe = executable('pathfinder.cpp.executable',
     sources: ['pathfinder.cpp'],
@@ -11,3 +12,7 @@ linkpredictor_exe = executable('linkpredictor.cpp.executable',
 movietraveler_exe = executable('movietraveler.cpp.executable',
     sources: ['movietraveler.cpp'],
     dependencies: [cxxopts_dep, actor_graph_dep])
+
+navigationsystem_exe = executable('navigationsystem.cpp.executable',
+sources: ['navigationsystem.cpp'],
+dependencies: [cxxopts_dep, city_graph_dep])

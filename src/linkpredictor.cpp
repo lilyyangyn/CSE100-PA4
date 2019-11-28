@@ -60,6 +60,9 @@ int main(int argc, char* argv[]) {
         outFile2.open(outFileName2);
 
         predictFutureCollaboration(graph, inFile, outFile1, outFile2);
+        if (!inFile.eof()) {
+            cerr << "Failed to read the query file!\n";
+        }
 
         // close file
         inFile.close();
@@ -95,8 +98,5 @@ void predictFutureCollaboration(ActorGraph* graph, istream& inFile,
 
         // predict link and write output
         graph->predictlink(s, outFile1, outFile2);
-    }
-    if (!inFile.eof()) {
-        cerr << "Failed to read the query file!\n";
     }
 }

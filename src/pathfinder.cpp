@@ -50,9 +50,6 @@ void find_graph_paths(ActorGraph* graph, istream& inFile, ostream& outFile,
         // write path
         graph->find_path(targets[0], targets[1], outFile, use_weighted_edges);
     }
-    if (!inFile.eof()) {
-        cerr << "Failed to read the query file!\n";
-    }
 }
 
 /* Main program that runs the findpath */
@@ -107,6 +104,9 @@ int main(int argc, char* argv[]) {
 
         // find the shortest path
         find_graph_paths(graph, inFile, outFile, use_weighted_edges);
+        if (!inFile.eof()) {
+            cerr << "Failed to read the query file!\n";
+        }
 
         // close file
         inFile.close();
