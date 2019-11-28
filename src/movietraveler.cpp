@@ -1,6 +1,5 @@
 /**
- * This file implements a program that find the minimal spanning tree
- * of the graph constructed by the input info file
+ * This file implements a program that output the MST of the actor graph
  *
  * Author Yuening Yang
  */
@@ -14,14 +13,19 @@ using namespace std;
 
 /* Main program that runs the findpath */
 int main(int argc, char* argv[]) {
-    cxxopts::Options options("./movietraveler",
-                             "Find the minimal spanning tree of the graph.");
-    options.positional_help("./path_to_graph_info_file ./path_to_output_file");
+    cxxopts::Options options(
+        "./movietraveler",
+        "Find the minimal spanning tree of the actor graph.");
+    options.positional_help(
+        "./path_to_graph_info_file"
+        "./path_to_output_file [debugging]");
 
+    bool debugging_mode = false;
     string infoFileName, outFileName;
     options.allow_unrecognised_options().add_options()(
         "graphinfo", "", cxxopts::value<string>(infoFileName))(
         "output", "", cxxopts::value<string>(outFileName))(
+        "debugging", "", cxxopts::value<bool>(debugging_mode))(
         "h, help", "Print help and exit");
 
     options.parse_positional({"graphinfo", "output"});
@@ -41,8 +45,8 @@ int main(int argc, char* argv[]) {
         ofstream outFile;
         outFile.open(outFileName);
 
-        // find the MST
-        graph->findMST(outFile);
+        // find the shortest path
+        graph->findMST(outFile, debugging_mode);
 
         // close file
         outFile.close();

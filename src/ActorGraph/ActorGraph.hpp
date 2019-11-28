@@ -102,12 +102,12 @@ class ActorGraph {
     void predictlink(string targetActorName, ostream& outFile1,
                      ostream& outFile2);
 
-
     /* find the minimal spanning tree of the connected graph */
-    void findMST(ostream& outFile);
+    void findMST(ostream& outFile, bool show_abstract_only);
 
     /* helper method to insert (actor, movie) pair into the tree */
-    void insert(string actor, string movie_title, int year, bool use_weighted_edges);
+    void insert(string actor, string movie_title, int year,
+                bool use_weighted_edges);
 
     /** You can modify this method definition as you wish
      *
@@ -134,16 +134,16 @@ class ActorGraph {
   public:
     /** inner set, which are used to construct disjoint set */
     struct DisjointSet {
-        ActorNode* sentinel;  // the sentinel node of the disjoint set
-        int weight;
+        unordered_map<string, string> parents;
+        unordered_map<string, int> weights;
 
         /* Constructor of DisjointSet */
-        DisjointSet(ActorNode* actor);
+        DisjointSet(unordered_map<string, ActorNode*>& actors);
         /* union 2 sets, which contain actor1 and actor2 respectively */
-        ActorNode* union_set(ActorNode* actor1, ActorNode* actor2);
+        void union_set(string actor1, string actor2);
         /* find the sentinel node of the set actor is in. Compress path at the
          * same time */
-        ActorNode* find_sentinel(ActorNode* actor);
+        string find_sentinel(string actor);
     };
 };
 

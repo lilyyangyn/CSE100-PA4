@@ -163,6 +163,16 @@ TEST_F(SmallUnweightedGraphFixture, PREDICT_LINK_TEST) {
     EXPECT_EQ(os2.str(), "\n");
 }
 
+/* check whether findMST works well */
+TEST_F(SmallWeightedGraphFixture, FIND_MST_TEST) {
+    ostringstream os;
+    graph.findMST(os, true);
+
+    EXPECT_EQ(os.str(),
+              "#NODE CONNECTED: 7\n#EDGE CHOSEN: "
+              "6\nTOTAL EDGE WEIGHTS: 20\n");
+}
+
 /* find number of edges between two actor nodes */
 TEST_F(SmallUnweightedGraphFixture, GET_EDGE_NUM_TEST) {
     ActorGraph::ActorNode* actor = graph.getActors().at("James McAvoy");

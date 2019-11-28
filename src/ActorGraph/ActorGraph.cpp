@@ -242,7 +242,7 @@ void ActorGraph::predictlink(string targetActorName, ostream& outFile1,
 }
 
 /* find the minimal spanning tree of the connected graph */
-void ActorGraph::findMST(ostream& outFile) {
+void ActorGraph::findMST(ostream& outFile, bool show_abstract_only) {
     vector<MovieEdge*> edges;
     // push all movie edges into vector. each movie edge appears only ONCE
     for (auto itr = movies.begin(); itr != movies.end(); itr++) {
@@ -250,6 +250,61 @@ void ActorGraph::findMST(ostream& outFile) {
     }
     // sort edges according to their weight in ascending order
     sort(edges.begin(), edges.end(), MovieEdge::WeightComp());
+
+    // initial V and E of the MST
+    vector<string> movie_traveling;
+
+    // construct the MST
+    int edgeWeights = 0;
+    // create disjoint set
+    DisjointSet ds(actors);
+    for (int m = 0; m < edges.size(); m++) {
+        unordered_set<string>& actorsInMovie = edges[m]->actors;
+        int weight = edges[m]->weight;
+        // pair each two actors who played in this movie
+        for (auto itr1 = actorsInMovie.begin(); itr1 != actorsInMovie.end();
+             itr1++) {
+            for (auto itr2 = actorsInMovie.begin(); itr2 != actorsInMovie.end();
+                 itr2++) {
+                string sentinel1 = ds.find_sentinel((*itr1));
+                string sentinel2 = ds.find_sentinel((*itr2));
+                // if not in the same set
+                if (sentinel1 != sentinel2) {
+                    // add this edge to MST
+                    string path = "(" + (*itr1) + ")<--[" + edges[m]->key +
+                                  "]-->(" + (*itr2) + ")";
+                    movie_traveling.push_back(path);
+                    // union two disjoint set
+                    ds.union_set(sentinel1, sentinel2);
+                    // increasing edge weights
+                    edgeWeights += weight;
+
+                    // the total num of edges in MST should be |V| - 1. If
+                    // reach, then write output stream and return
+                    if (movie_traveling.size() == actors.size() - 1) {
+                        // write output file
+                        if (!show_abstract_only) {
+                            outFile << "(actor)<--[movie#@year]-->(actor)"
+                                    << endl;
+                            for (int i = 0; i < movie_traveling.size(); i++) {
+                                outFile << movie_traveling[i] << endl;
+                            }
+                        }
+                        outFile << "#NODE CONNECTED: " << actors.size() << endl;
+                        outFile << "#EDGE CHOSEN: " << movie_traveling.size()
+                                << endl;
+                        outFile << "TOTAL EDGE WEIGHTS: " << edgeWeights
+                                << endl;
+                        return;
+                    }
+
+                    // switch to another actor to let him introduce you to new
+                    // actors
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /* helper method to insert (actor, movie) pair into the tree */
@@ -389,17 +444,41 @@ bool ActorGraph::ActorNode::DistComp::operator()(ActorNode* left,
 }
 
 /* Constructor of DisjointSet */
-ActorGraph::DisjointSet::DisjointSet(ActorNode* actor)
-    : sentinel(actor), weight(1) {
-    // set the parent to nullpointer
-    actor->disjointSetParent = 0;
+ActorGraph::DisjointSet::DisjointSet(
+    unordered_map<string, ActorNode*>& actors) {
+    for (auto itr = actors.begin(); itr != actors.end(); itr++) {
+        // create a disjoint set for each node by setting the parent equal to
+        // the node itself
+        parents.emplace(itr->first, itr->first);
+        weights.emplace(itr->first, 1);
+    }
 }
 
 /* union 2 sets, which contain actor1 and actor2 respectively */
-ActorGraph::ActorNode* ActorGraph::DisjointSet::union_set(ActorNode* actor1,
-                                                          ActorNode* actor2) {}
+void ActorGraph::DisjointSet::union_set(string actor1, string actor2) {
+    // get parents of both nodes respectively
+    string sentinel1 = find_sentinel(actor1);
+    string sentinel2 = find_sentinel(actor2);
+    if (sentinel1 != sentinel2) {
+        // not in the same set, use the sentinel with larger weight as parent
+        if (weights.at(sentinel1) > weights.at(sentinel2)) {
+            parents.at(sentinel2) = sentinel1;
+            weights.at(sentinel1) += weights.at(sentinel2);
+        } else {
+            parents.at(sentinel1) = sentinel2;
+            weights.at(sentinel2) += weights.at(sentinel1);
+        }
+    }
+}
 
 /* find the sentinel node of the set actor is in. Compress path at the
  * same time */
-ActorGraph::ActorNode* ActorGraph::DisjointSet::find_sentinel(
-    ActorNode* actor) {}
+string ActorGraph::DisjointSet::find_sentinel(string actor) {
+    // get parent node
+    string parent = parents.at(actor);
+    // actor is not the sentinel node
+    if (parent != actor) {
+        parents.at(actor) = find_sentinel(parent);
+    }
+    return parents.at(actor);
+}
