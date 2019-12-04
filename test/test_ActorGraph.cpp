@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "ActorGraph.hpp"
+#include "HelpUtil.hpp"
 
 using namespace std;
 using namespace testing;
@@ -192,4 +193,62 @@ TEST_F(SmallUnweightedGraphFixture, GET_EDGE_NUM_TEST) {
     ActorGraph::ActorNode* actor = graph.getActors().at("James McAvoy");
     EXPECT_EQ(actor->getEdgeNum("Michael Fassbender"), 2);
     EXPECT_EQ(actor->getEdgeNum("Tom Holland"), 0);
+}
+
+/* test pathfinder helper method with unweighted graph */
+TEST_F(SmallUnweightedGraphFixture, HELP_UTIL_FIND_UNWEIGHTED_TEST) {
+    istringstream is;
+    is.str(
+        "Actor1/Actress1\tActor2/Actress2\nRobert Downey Jr.\tChris "
+        "Evans\nJames McAvoy\tMichael Fassbender\n");
+
+    ostringstream os;
+    HelpUtil::find_graph_paths(&graph, is, os, false);
+
+    EXPECT_EQ(os.str(),
+              "(actor)--[movie#@year]-->(actor)--...\n\n(James "
+              "McAvoy)--[X-Men: Apocalypse#@2016]-->(Michael Fassbender)\n");
+}
+
+/* test pathfinder helper method with weighted graph */
+TEST_F(SmallWeightedGraphFixture, HELP_UTIL_FIND_WEIGHTED_TEST) {
+    istringstream is;
+    is.str(
+        "Actor1/Actress1\tActor2/Actress2\nRobert Downey Jr.\tChris "
+        "Evans\nJames McAvoy\tMichael Fassbender\n");
+
+    ostringstream os;
+    HelpUtil::find_graph_paths(&graph, is, os, true);
+
+    EXPECT_EQ(os.str(),
+              "(actor)--[movie#@year]-->(actor)--...\n\n(James "
+              "McAvoy)--[X-Men: Apocalypse#@2016]-->(Michael Fassbender)\n");
+}
+
+/* test linkpredictor helper method */
+TEST_F(SmallUnweightedGraphFixture, HELP_UTIL_PREDICT_LINK_TEST) {
+    istringstream is;
+    is.str("Actor\nKevin Bacon\n");
+
+    ostringstream os1;
+    ostringstream os2;
+    HelpUtil::predictFutureCollaboration(&graph, is, os1, os2);
+
+    EXPECT_EQ(
+        os1.str(),
+        "Actor1,Actor2,Actor3,Actor4\nJames McAvoy\tMichael Fassbender\t\n");
+    EXPECT_EQ(os2.str(),
+              "Actor1,Actor2,Actor3,Actor4\nKatherine Waterston\tSamuel L. "
+              "Jackson\t\n");
+}
+
+/* test load function */
+TEST(ActorGraphTests, LOAD_TEST) {
+    string infoFileName = "/Code/cse100_pa4/data/imdb_small_sample.tsv";
+    ActorGraph actorGraphU;
+    actorGraphU.loadFromFile(infoFileName.c_str(), false);
+    EXPECT_TRUE(1);
+    ActorGraph actorGraphW;
+    actorGraphW.loadFromFile(infoFileName.c_str(), true);
+    EXPECT_TRUE(1);
 }

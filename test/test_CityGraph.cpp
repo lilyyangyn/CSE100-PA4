@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "CityGraph.hpp"
+#include "HelpUtil.hpp"
 
 using namespace std;
 using namespace testing;
@@ -65,4 +66,24 @@ TEST_F(SmallCityGraphFixture, A_START_SEARCH_TEST) {
     // test if start city not exist
     graph.find_path("Nowhere", "C", os);
     EXPECT_EQ(os.str(), "\n");
+}
+
+/* test navigatesystem helper method */
+TEST_F(SmallCityGraphFixture, HELP_UTIL_FIND_ASTAR_TEST) {
+    istringstream is;
+    is.str("A C\nA F\n");
+
+    ostringstream os;
+    HelpUtil::find_AStar_paths(&graph, is, os);
+
+    EXPECT_EQ(os.str(), "(A)-->(D)-->(C)\n\n");
+}
+
+/* test load function */
+TEST(CityGraphTests, LOAD_TEST) {
+    string cityxyFile = "/Code/cse100_pa4/data/cityxy.txt";
+    string citypairFile = "/Code/cse100_pa4/data/citypairs.txt";
+    CityGraph cityGraph;
+    cityGraph.loadFromFile(cityxyFile.c_str(), citypairFile.c_str());
+    EXPECT_TRUE(1);
 }

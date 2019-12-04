@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "ActorGraph.hpp"
+#include "HelpUtil.hpp"
 #include "cxxopts.hpp"
 
 using namespace std;
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
         ofstream outFile2;
         outFile2.open(outFileName2);
 
-        predictFutureCollaboration(graph, inFile, outFile1, outFile2);
+        HelpUtil::predictFutureCollaboration(graph, inFile, outFile1, outFile2);
         if (!inFile.eof()) {
             cerr << "Failed to read the query file!\n";
         }
@@ -71,32 +72,5 @@ int main(int argc, char* argv[]) {
 
         // delete graph to release memory
         delete graph;
-    }
-}
-
-/* find the 4 actors with the highest priority who have collaberated and not
- * collaberated with the the given actor, and output to outFile1 and outFile2
- * respectively */
-void predictFutureCollaboration(ActorGraph* graph, istream& inFile,
-                                ostream& outFile1, ostream& outFile2) {
-    // write header
-    outFile1 << "Actor1,Actor2,Actor3,Actor4" << endl;
-    outFile2 << "Actor1,Actor2,Actor3,Actor4" << endl;
-
-    bool have_header = false;
-    while (inFile) {
-        string s;
-
-        // get the next line
-        if (!getline(inFile, s)) break;
-
-        if (!have_header) {
-            // skip the header
-            have_header = true;
-            continue;
-        }
-
-        // predict link and write output
-        graph->predictlink(s, outFile1, outFile2);
     }
 }

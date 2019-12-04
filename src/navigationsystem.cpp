@@ -8,37 +8,10 @@
 #include <iostream>
 
 #include "CityGraph.hpp"
+#include "HelpUtil.hpp"
 #include "cxxopts.hpp"
 
 using namespace std;
-
-/* find the shortest path of the graph */
-void find_graph_paths(CityGraph* graph, istream& inFile, ostream& outFile) {
-    while (inFile) {
-        string s;
-
-        // get the next line
-        if (!getline(inFile, s)) break;
-
-        istringstream ss(s);
-        vector<string> targets;
-
-        while (ss) {
-            string str;
-
-            if (!getline(ss, str, ' ')) break;
-            targets.push_back(str);
-        }
-
-        if (targets.size() != 2) {
-            // we should have exactly 2 columns
-            continue;
-        }
-
-        // write path
-        graph->find_path(targets[0], targets[1], outFile);
-    }
-}
 
 /* Main program that runs the findpath */
 int main(int argc, char* argv[]) {
@@ -76,7 +49,7 @@ int main(int argc, char* argv[]) {
         outFile.open(outFileName);
 
         // find the shortest path
-        find_graph_paths(graph, inFile, outFile);
+        HelpUtil::find_AStar_paths(graph, inFile, outFile);
         if (!inFile.eof()) {
             cerr << "Failed to read the query file!\n";
         }
